@@ -1,27 +1,28 @@
-body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; margin:0; padding:0; }
-#startScreen, #gameUI { padding:20px; }
-#battlefield {
-  display: grid;
-  grid-template-columns: repeat(20, 30px);
-  grid-gap: 2px;
-  justify-content: center;
-  margin: 20px auto;
-}
-.tile {
-  width: 30px; height:30px;
-  border:1px solid #999;
-  display:flex; align-items:center; justify-content:center;
-  font-size:14px; cursor:pointer;
-}
-.tile.france { color: blue; }
-.tile.russia { color: darkred; }
-.tile.plain { background:#d8d8d8; }
-.tile.hill  { background:#c4b087; }
-.tile.forest{ background:#5a8f5a; }
-.tile.river { background:#5daee6; }
-.tile.bridge{ background:#997950; }
-.tile.selected { outline:3px solid red; }
-.tile.routed { background:rgba(255,0,0,0.3) !important; }
-.hp-bar, .morale-bar { font-size:10px; }
 
+<div id="startScreen">
+  <h1>Napoleon Battle Game</h1>
+  <div>
+    Faction: <span id="deployFaction">France</span><br/>
+    <label>
+      Unit Type:
+      <select id="unitType">
+        <option value="infantry">Infantry</option>
+        <option value="cavalry">Cavalry</option>
+        <option value="artillery">Artillery</option>
+      </select>
+    </label>
+    <br/><br/>
+    <button id="deployBtn">Deploy/Next</button>
+  </div>
+</div>
 
+<div id="gameUI">
+  <h3 id="turnDisplay" style="display:none;">Turn: France</h3>
+  <button id="endTurnBtn" style="display:none;">End Turn</button>
+  <div id="battlefield"></div>
+</div>
+
+<!-- Sound effects -->
+<audio id="moveSound" src="https://actions.google.com/sounds/v1/footsteps/footsteps_grass.ogg" preload="auto"></audio>
+<audio id="attackSound" src="https://actions.google.com/sounds/v1/impacts/wood_thud.ogg" preload="auto"></audio>
+<audio id="routingSound" src="https://actions.google.com/sounds/v1/alarms/warning_1.ogg" preload="auto"></audio>
