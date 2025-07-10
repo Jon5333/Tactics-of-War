@@ -2,7 +2,7 @@
 
 A turn-based tactical battle simulator set during the Napoleonic Wars. Command either **France** or **Russia**, deploy your units across a terrain-rich battlefield, and crush your enemy using tactics, morale, and terrain advantages.
 
-> 💡 Inspired by *Total War: Napoleon*, built for the browser using pure HTML, CSS, and JavaScript.
+>  built for the browser using pure HTML, CSS, and JavaScript.
 
 ---
 
