@@ -8,15 +8,27 @@
 </head>
 <body>
   <div id="startScreen">
-    <h1>Tactics of War</h1>
-    <p>Select your units and deploy!</p>
-    <button id="startButton">Start Game</button>
+    <h1>Napoleon Battle Game</h1>
+    <div>
+      Faction: <span id="deployFaction">France</span><br/>
+      <label>
+        Unit Type:
+        <select id="unitType">
+          <option value="infantry">Infantry</option>
+          <option value="cavalry">Cavalry</option>
+          <option value="artillery">Artillery</option>
+        </select>
+      </label><br/><br/>
+      <button id="deployBtn">Deploy/Next</button>
+    </div>
   </div>
+
   <div id="gameUI" style="display:none;">
-    <h2 id="turnDisplay">Turn: France</h2>
+    <h2 id="turnDisplay">Current Turn: France</h2>
     <button id="endTurn">End Turn</button>
     <div id="battlefield"></div>
   </div>
+
   <script src="script.js"></script>
 </body>
 </html>
