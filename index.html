@@ -5,336 +5,596 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tactics of War</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-    #startScreen, #gameControls { text-align: center; padding: 20px; }
+    body {
+      font-family: sans-serif;
+      background: #ececec;
+      text-align: center;
+      margin: 0; padding: 0;
+    }
+
     #battlefield {
       display: grid;
-      grid-template-columns: repeat(20, 60px);
-      gap: 2px;
+      grid-template-columns: repeat(20, 30px);
+      grid-gap: 2px;
       justify-content: center;
-      margin: 10px auto;
-      background-color: #222;
-      padding: 10px;
-      border-radius: 8px;
+      margin: 10px auto 20px;
+      user-select: none;
     }
+
     .tile {
-      width: 60px; height: 60px;
-      border: 1px solid #aaa;
+      width: 30px;
+      height: 30px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      font-weight: bold;
+      color: black;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      position: relative;
+    }
+
+    .tile.grass {
+      background: #669955;
+      background-image:
+        linear-gradient(0deg, transparent 75%, #557744 75%),
+        linear-gradient(90deg, transparent 75%, #557744 75%);
+      background-size: 6px 6px;
+    }
+
+    .tile.hill {
+      background: #c4b087;
+      background-image:
+        linear-gradient(45deg, #b59e70 25%, transparent 25%),
+        linear-gradient(-45deg, #b59e70 25%, transparent 25%);
+      background-size: 6px 6px;
+    }
+
+    .tile.forest {
+      background: #5a8f5a;
+      background-image:
+        linear-gradient(0deg, transparent 75%, #4d7a4d 75%),
+        linear-gradient(90deg, transparent 75%, #4d7a4d 75%);
+      background-size: 6px 6px;
+    }
+
+    .tile.river {
+      background: #5daee6;
+      background-image:
+        linear-gradient(135deg, #72c2f1 25%, transparent 25%),
+        linear-gradient(45deg, #72c2f1 25%, transparent 25%);
+      background-size: 6px 6px;
+    }
+
+    .tile.bridge {
+      background: #997950;
+      background-image:
+        repeating-linear-gradient(0deg, #a88a64, #a88a64 5px, #8c6b3d 5px, #8c6b3d 10px);
+      background-size: 6px 6px;
+    }
+
+    .tile.road {
+      background: #aa8e58;
+      background-image:
+        repeating-linear-gradient(45deg, #c3af7d, #c3af7d 3px, #a88a5e 3px, #a88a5e 6px);
+      background-size: 6px 6px;
+    }
+
+    .tile.france { color: blue; }
+    .tile.russia { color: darkred; }
+    .tile.routed { background-color: rgba(255, 0, 0, 0.3) !important; }
+    .tile.highlight { outline: 2px solid yellow; }
+    .tile.aura { box-shadow: 0 0 8px 2px lightblue inset; }
+
+    .selected { outline: 2px solid red; outline-offset: -2px; }
+
+    .hp-bar, .morale-bar {
+      height: 4px;
+      width: 80%;
+      border-radius: 2px;
+      margin: 1px 0;
+    }
+    .hp-bar { background-color: red; }
+    .morale-bar { background-color: lightblue; }
+
+    button {
+      margin: 5px;
+      padding: 5px 10px;
       font-size: 14px;
       cursor: pointer;
-      text-align: center;
     }
-    .plain { background: #d8d8d8; }
-    .hill { background: #c4b087; }
-    .forest { background: #5a8f5a; color: white; }
-    .river { background: #5daee6; }
-    .bridge { background: #997950; }
-    .selected { outline: 2px solid red; }
-    .france { border: 2px solid blue; }
-    .russia { border: 2px solid darkred; }
-    .routed { filter: brightness(75%) hue-rotate(-50deg); }
-    .unit-label { font-weight: bold; }
-    .hp-bar, .morale-bar { font-size: 10px; }
+
+    #startScreen, #turnDisplay, #endTurnBtn, #controlDisplay {
+      margin: 10px;
+    }
+
+    #captureStatus {
+      font-size: 14px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-
-<div id="startScreen">
-  <h1>Tactics of War</h1>
-  <div>
-    Faction: <span id="deployFaction">France</span><br/>
-    <label>Choose General:
-      <select id="generalSelector"></select>
-    </label><br/>
-    <label>Unit Type:
-      <select id="unitType">
-        <option value="infantry">Infantry</option>
-        <option value="cavalry">Cavalry</option>
-        <option value="artillery">Artillery</option>
-        <option value="general">General</option>
-      </select>
-    </label><br/><br/>
+  <div id="startScreen">
+    <h1>Tactics of War</h1>
+    <p>Faction: <span id="deployFaction">France</span></p>
+    <label for="generalSelector">General:</label>
+    <select id="generalSelector"></select>
+    <label for="unitType">Unit:</label>
+    <select id="unitType">
+      <option value="infantry">Infantry</option>
+      <option value="cavalry">Cavalry</option>
+      <option value="artillery">Artillery</option>
+      <option value="general">General</option>
+    </select>
     <button id="deployBtn">Deploy / Next</button>
   </div>
-</div>
 
-<div id="gameControls" style="display:none;">
-  <h3 id="turnDisplay">Current Turn: France</h3>
-  <button id="endTurnBtn">End Turn</button>
-</div>
+  <h3 id="turnDisplay" style="display:none;">Current Turn: France</h3>
+  <div id="controlDisplay" style="display:none;">
+    <button id="endTurnBtn">End Turn</button>
+    <div id="captureStatus">Capture Point: Neutral</div>
+  </div>
 
-<div id="battlefield"></div>
+  <div id="battlefield"></div>
+  <script>
+    let grid = [];
+    let selectedTile = null;
+    let selectedUnitType = 'infantry';
+    let currentFaction = 'france';
+    let deploymentPhase = true;
 
-<script>
-let grid = [], currentFaction = 'france', selectedUnitType = 'infantry', deploymentPhase = true;
-let selectedTile = null;
-
-const combatMods = {
-  plain: 1,
-  hill: 1.1,
-  forest: 0.9,
-  river: 0.8,
-  bridge: 1
-};
-
-const generals = {
-  france: [ { name: "Napoleon", bonus: 0.25 }, { name: "Murat", bonus: 0.1 } ],
-  russia: [ { name: "Kutuzov", bonus: 0.2 }, { name: "Bagration", bonus: 0.15 } ]
-};
-
-let selectedGeneral = { france: null, russia: null };
-
-document.getElementById('unitType').onchange = e => selectedUnitType = e.target.value;
-document.getElementById('deployBtn').onclick = deployNext;
-document.getElementById('endTurnBtn').onclick = endTurn;
-
-function setupGeneralDropdown() {
-  const sel = document.getElementById('generalSelector');
-  sel.innerHTML = '';
-  generals[currentFaction].forEach((g, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = g.name;
-    sel.appendChild(opt);
-  });
-}
-
-function deployNext() {
-  const genIdx = document.getElementById('generalSelector').value;
-  selectedGeneral[currentFaction] = generals[currentFaction][genIdx];
-
-  if (currentFaction === 'france') {
-    currentFaction = 'russia';
-    document.getElementById('deployFaction').textContent = 'Russia';
-    setupGeneralDropdown();
-  } else {
-    deploymentPhase = false;
-    document.getElementById('startScreen').style.display = 'none';
-    document.getElementById('gameControls').style.display = 'block';
-    document.getElementById('endTurnBtn').style.display = 'inline-block';
-    updateTurnDisplay();
-  }
-}
-
-function updateTurnDisplay() {
-  document.getElementById('turnDisplay').textContent = 'Current Turn: ' + (currentFaction === 'france' ? 'France' : 'Russia');
-}
-
-function createBattlefield() {
-  const bf = document.getElementById('battlefield');
-  bf.innerHTML = '';
-  grid = [];
-
-  const rows = 20, cols = 20;
-  let map = Array(rows).fill().map(() => Array(cols).fill('plain'));
-
-  for (let i = 0; i < 50; i++) {
-    let r = Math.floor(Math.random() * rows), c = Math.floor(Math.random() * cols),
-        t = Math.random() < 0.5 ? 'forest' : 'hill';
-    map[r][c] = t;
-  }
-
-  const mid = Math.floor(cols / 2);
-  for (let r = 0; r < rows; r++) {
-    map[r][mid] = 'river';
-    if (Math.random() > 0.7 && mid + 1 < cols) map[r][mid + 1] = 'river';
-  }
-  map[2][mid] = 'bridge';
-  map[17][mid] = 'bridge';
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const terrain = map[r][c];
-      const div = document.createElement('div');
-      div.className = `tile ${terrain}`;
-      div.dataset.row = r;
-      div.dataset.col = c;
-      div.dataset.terrain = terrain;
-      div.onclick = () => onTileClick(r, c);
-      bf.appendChild(div);
-      grid.push({ row: r, col: c, terrain, unit: null, element: div });
-    }
-  }
-}
-
-function onTileClick(r, c) {
-  const cell = grid.find(t => t.row == r && t.col == c);
-
-  if (deploymentPhase) {
-    // Prevent deploying in enemy territory
-    if ((currentFaction === 'france' && r >= 10) || (currentFaction === 'russia' && r < 10)) return;
-    if (cell.unit) return; // Skip if unit already there
-
-    // ✅ Create the unit
-    let unit = {
-      type: selectedUnitType,
-      faction: currentFaction,
-      hp: selectedUnitType === 'general' ? 150 : 100,
-      morale: selectedUnitType === 'general' ? 150 : 100 + (selectedGeneral[currentFaction]?.bonus || 0) * 100,
-      hasMoved: false,
-      hasAttacked: false,
-      routed: false,
-      routeTurns: 0
+    const generals = {
+      france: [{ name: "Napoleon", bonus: 0.25 }, { name: "Murat", bonus: 0.1 }],
+      russia: [{ name: "Kutuzov", bonus: 0.2 }, { name: "Bagration", bonus: 0.15 }]
     };
 
-    // ✅ Restrict general to one per faction
-    if (selectedUnitType === 'general') {
-      const alreadyHasGeneral = grid.some(t => t.unit && t.unit.type === 'general' && t.unit.faction === currentFaction);
-      if (alreadyHasGeneral) return;
+    const selectedGeneral = { france: null, russia: null };
+    const playerFaction = 'france';
+    const aiFaction = 'russia';
+
+    const combatMods = {
+      grass: 1,
+      hill: 1.1,
+      forest: 0.8,
+      river: 0.5,
+      bridge: 1,
+      road: 1.05
+    };
+
+    const capturePoint = { row: 10, col: 2, holder: null, counter: 0 };
+
+    document.getElementById('unitType').onchange = e => selectedUnitType = e.target.value;
+    document.getElementById('deployBtn').onclick = deployNext;
+    document.getElementById('endTurnBtn').onclick = endTurn;
+
+    function setupGeneralDropdown() {
+      const sel = document.getElementById('generalSelector');
+      sel.innerHTML = '';
+      generals[currentFaction].forEach((g, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = g.name;
+        sel.appendChild(opt);
+      });
     }
 
-    // ✅ Deploy unit
-    cell.unit = unit;
-    renderCell(cell);
-    return;
-  }
+    function deployNext() {
+      const idx = document.getElementById('generalSelector').value;
+      selectedGeneral[currentFaction] = generals[currentFaction][idx];
 
-  // ✅ Game turn logic (after deployment)
-  if (!selectedTile) {
-    if (cell.unit && cell.unit.faction === currentFaction && !cell.unit.hasMoved && !cell.unit.routed) {
-      selectedTile = cell;
-      cell.element.classList.add('selected');
-    }
-  } else {
-    selectedTile.element.classList.remove('selected');
-    attemptAction(selectedTile, cell);
-    selectedTile = null;
-  }
-}
-
-function attemptAction(from, to) {
-  const unit = from.unit;
-  const dist = Math.abs(from.row - to.row) + Math.abs(from.col - to.col);
-  if (dist !== 1 || unit.hasMoved) return;
-
-  if (!to.unit) {
-    to.unit = unit;
-    from.unit = null;
-    unit.hasMoved = true;
-    renderCell(from);
-    renderCell(to);
-  } else if (to.unit.faction !== currentFaction && !unit.hasAttacked) {
-    let attack = 30 * combatMods[from.terrain];
-    to.unit.hp -= attack;
-    to.unit.morale -= 25;
-    unit.hasAttacked = true;
-
-    const nearbyGeneral = grid.find(t =>
-      t.unit && t.unit.type === 'general' &&
-      t.unit.faction === unit.faction &&
-      Math.abs(t.row - from.row) + Math.abs(t.col - from.col) <= 2
-    );
-    if (nearbyGeneral) {
-      unit.morale += 5;
-    }
-
-    if (to.unit.morale <= 30 && !to.unit.routed) {
-      to.unit.routed = true;
-      to.element.classList.add('routed');
-    }
-
-    if (to.unit.hp <= 0 || to.unit.morale <= 0) {
-      if (to.unit.type === 'general') {
-        grid.forEach(cell => {
-          if (cell.unit && cell.unit.faction === to.unit.faction) {
-            cell.unit.morale -= 25;
-          }
-        });
+      if (currentFaction === 'france') {
+        currentFaction = 'russia';
+        document.getElementById('deployFaction').textContent = 'Russia';
+        setupGeneralDropdown();
+      } else {
+        deploymentPhase = false;
+        document.getElementById('startScreen').style.display = 'none';
+        document.getElementById('turnDisplay').style.display = 'block';
+        document.getElementById('controlDisplay').style.display = 'block';
+        updateTurnDisplay();
       }
-      to.unit = null;
     }
 
-    renderCell(from);
-    renderCell(to);
-    checkWinCondition();
-  }
-}
+    function updateTurnDisplay() {
+      document.getElementById('turnDisplay').textContent =
+        'Current Turn: ' + (currentFaction === 'france' ? 'France' : 'Russia');
+    }
 
-function renderCell(cell) {
-  const el = cell.element;
-  el.className = `tile ${cell.terrain}`;
-  el.textContent = '';
-  if (cell.unit) {
-    el.classList.add(cell.unit.faction);
-    if (cell.unit.routed) el.classList.add('routed');
+    function createBattlefield() {
+      const bf = document.getElementById('battlefield');
+      bf.innerHTML = '';
+      grid = [];
+      const rows = 20, cols = 20;
+      let map = Array(rows).fill().map(() => Array(cols).fill('grass'));
 
-    const lbl = document.createElement('div');
-    lbl.textContent = cell.unit.type[0].toUpperCase();
-    lbl.className = 'unit-label';
+      // Snake-like horizontal river across middle
+      let riverCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+      let snakeOffsets = [0, 1, 0, -1, 0, 1, 0, -1, 0, 1, 0, -1, 0, 1, 0, -1, 0];
 
-    const hp = document.createElement('div');
-    hp.textContent = `${Math.round(cell.unit.hp)} HP`;
-    hp.className = 'hp-bar';
+      for (let i = 0; i < riverCols.length; i++) {
+        let c = riverCols[i];
+        let r = 10 + snakeOffsets[i];
+        map[r][c] = 'river';
+      }
 
-    const mr = document.createElement('div');
-    mr.textContent = `${Math.round(cell.unit.morale)} M`;
-    mr.className = 'morale-bar';
+      // Bridges on column 2 and 18
+      map[10][2] = 'bridge';
+      map[10][18] = 'bridge';
 
-    el.append(lbl, hp, mr);
-  }
-}
+      // Roads to bridges (left)
+      map[9][0] = 'road';
+      map[8][1] = 'road';
+      map[9][1] = 'road';
+      map[10][1] = 'road';
 
-function endTurn() {
-  grid.forEach(cell => {
-    if (cell.unit && cell.unit.faction === currentFaction) {
-      cell.unit.hasMoved = false;
-      cell.unit.hasAttacked = false;
-      if (cell.unit.routed) {
-        cell.unit.routeTurns++;
-        moveRouted(cell);
-        if (cell.unit.routeTurns > 3) {
-          cell.unit = null;
+      // Roads to bridges (right)
+      map[10][19] = 'road';
+      map[11][18] = 'road';
+      map[9][18] = 'road';
+
+      // Create grid tiles
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const terrain = map[r][c];
+          const div = document.createElement('div');
+          div.className = `tile ${terrain}`;
+          div.dataset.row = r;
+          div.dataset.col = c;
+          div.dataset.terrain = terrain;
+          div.onclick = () => onTileClick(r, c);
+          bf.appendChild(div);
+          grid.push({ row: r, col: c, terrain, unit: null, element: div });
         }
       }
     }
-    renderCell(cell);
-  });
 
-  currentFaction = currentFaction === 'france' ? 'russia' : 'france';
-  updateTurnDisplay();
-  checkWinCondition();
-}
+    function onTileClick(r, c) {
+      const cell = grid.find(t => t.row === r && t.col === c);
 
-function moveRouted(cell) {
-  const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-  for (let [dr, dc] of dirs) {
-    const nr = cell.row + dr, nc = cell.col + dc;
-    const nxt = grid.find(t => t.row === nr && t.col === nc);
-    if (nxt && !nxt.unit) {
-      nxt.unit = cell.unit;
-      nxt.unit.hasMoved = true;
-      nxt.unit.routeTurns = cell.unit.routeTurns;
-      nxt.unit.routed = true;
-      cell.unit = null;
-      renderCell(nxt);
-      renderCell(cell);
-      break;
+      if (deploymentPhase) {
+        if ((currentFaction === 'france' && r >= 10) || (currentFaction === 'russia' && r < 10)) return;
+        if (cell.unit) return;
+
+        let unit = {
+          type: selectedUnitType,
+          faction: currentFaction,
+          hp: selectedUnitType === 'general' ? 150 : 100,
+          morale: 100 + ((selectedGeneral[currentFaction]?.bonus || 0) * 100),
+          hasMoved: false,
+          hasAttacked: false,
+          routed: false,
+          routeTurns: 0
+        };
+
+        if (selectedUnitType === 'general') {
+          const alreadyHasGeneral = grid.some(t => t.unit && t.unit.type === 'general' && t.unit.faction === currentFaction);
+          if (alreadyHasGeneral) return;
+        }
+
+        cell.unit = unit;
+        renderCell(cell);
+        return;
+      }
+
+      if (!selectedTile) {
+        if (cell.unit && cell.unit.faction === currentFaction && !cell.unit.hasMoved && !cell.unit.routed) {
+          selectedTile = cell;
+          cell.element.classList.add('selected');
+          showMovementRange(cell);
+        }
+      } else {
+        clearHighlights();
+        selectedTile.element.classList.remove('selected');
+        attemptAction(selectedTile, cell);
+        selectedTile = null;
+      }
     }
-  }
-}
 
-function checkWinCondition() {
-  const franceAlive = grid.some(t => t.unit && t.unit.faction === 'france' && !t.unit.routed);
-  const russiaAlive = grid.some(t => t.unit && t.unit.faction === 'russia' && !t.unit.routed);
-  if (!franceAlive) { alert('Russia Wins!'); resetGame(); }
-  if (!russiaAlive) { alert('France Wins!'); resetGame(); }
-}
+    function showMovementRange(tile) {
+      const unit = tile.unit;
+      if (!unit) return;
 
-function resetGame() {
-  deploymentPhase = true;
-  grid = [];
-  currentFaction = 'france';
-  document.getElementById('startScreen').style.display = 'block';
-  document.getElementById('gameControls').style.display = 'none';
-  document.getElementById('deployFaction').textContent = 'France';
-  setupGeneralDropdown();
-  createBattlefield();
-}
+      const range = unit.type === 'cavalry' ? 4 : 1;
+      const visited = new Set();
+      const queue = [{ row: tile.row, col: tile.col, dist: 0 }];
 
-setupGeneralDropdown();
-createBattlefield();
-</script>
+      while (queue.length > 0) {
+        const { row, col, dist } = queue.shift();
+        const key = `${row},${col}`;
+        if (visited.has(key) || dist > range) continue;
+        visited.add(key);
+
+        const cell = grid.find(t => t.row === row && t.col === col);
+        if (!cell || (cell.terrain === 'river' && cell.terrain !== 'bridge')) continue;
+        if (dist > 0) cell.element.classList.add('highlight');
+
+        [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => {
+          queue.push({ row: row + dr, col: col + dc, dist: dist + 1 });
+        });
+      }
+    }
+
+    function clearHighlights() {
+      grid.forEach(cell => cell.element.classList.remove('highlight'));
+    }
+
+    function updateGeneralAura() {
+      grid.forEach(cell => cell.element.classList.remove('aura'));
+      const generalTile = grid.find(t => t.unit && t.unit.type === 'general' && t.unit.faction === currentFaction);
+      if (!generalTile) return;
+
+      const range = 4;
+      for (const cell of grid) {
+        const dx = Math.abs(cell.row - generalTile.row);
+        const dy = Math.abs(cell.col - generalTile.col);
+        if (dx + dy <= range && (!cell.unit || cell.unit.faction === currentFaction)) {
+          cell.element.classList.add('aura');
+        }
+      }
+    }
+  function attemptAction(from, to) {
+      const unit = from.unit;
+      const dist = Math.abs(from.row - to.row) + Math.abs(from.col - to.col);
+      const maxRange = unit.type === 'cavalry' ? 4 : 1;
+
+      if (dist > maxRange || unit.hasMoved) return;
+
+      const canCross = from.terrain === 'bridge' || to.terrain === 'bridge' || (from.terrain !== 'river' && to.terrain !== 'river');
+      if (!canCross) return;
+
+      if (!to.unit) {
+        to.unit = unit;
+        from.unit = null;
+        unit.hasMoved = true;
+        renderCell(from);
+        renderCell(to);
+        updateGeneralAura();
+        return;
+      }
+
+      if (to.unit.faction !== unit.faction && !unit.hasAttacked) {
+        let attack = 30;
+
+        if (unit.type === 'cavalry') {
+          attack = 50;
+          if (to.terrain === 'forest') attack *= 0.5;
+        } else if (unit.type === 'artillery') {
+          const range = 2;
+          if (dist > range) return; // Artillery can't attack beyond range 2
+          attack = 60;
+        }
+
+        // Check if inside general aura
+        const gen = grid.find(t => t.unit && t.unit.type === 'general' && t.unit.faction === unit.faction);
+        if (gen && Math.abs(to.row - gen.row) + Math.abs(to.col - gen.col) <= 4) {
+          attack *= 1.2;
+        }
+
+        to.unit.hp -= attack;
+        to.unit.morale -= 25;
+        unit.hasAttacked = true;
+
+        if (to.unit.morale <= 30 && !to.unit.routed) {
+          to.unit.routed = true;
+          to.element.classList.add('routed');
+        }
+
+        if (to.unit.hp <= 0 || to.unit.morale <= 0) {
+          to.unit = null;
+        }
+
+        renderCell(from);
+        renderCell(to);
+        checkCapturePoint();
+        checkWinCondition();
+      }
+    }
+
+    function renderCell(cell) {
+      const el = cell.element;
+      el.className = `tile ${cell.terrain}`;
+      el.textContent = '';
+
+      if (cell.row == capturePoint.row && cell.col == capturePoint.col) {
+        const flag = document.createElement('div');
+        flag.textContent = '⚑';
+        flag.style.fontSize = '14px';
+        flag.style.position = 'absolute';
+        flag.style.top = '2px';
+        flag.style.right = '2px';
+        el.appendChild(flag);
+      }
+
+      if (cell.unit) {
+        el.classList.add(cell.unit.faction);
+        if (cell.unit.routed) el.classList.add('routed');
+
+        let letter = cell.unit.type[0].toUpperCase();
+        el.textContent = letter;
+
+        const hp = document.createElement('div');
+        hp.className = 'hp-bar';
+        hp.style.background = 'darkred';
+        hp.style.height = '3px';
+        hp.style.width = `${cell.unit.hp}%`;
+        el.appendChild(hp);
+
+        const morale = document.createElement('div');
+        morale.className = 'morale-bar';
+        morale.style.background = 'lightblue';
+        morale.style.height = '3px';
+        morale.style.width = `${cell.unit.morale}%`;
+        el.appendChild(morale);
+      }
+    }
+
+    function endTurn() {
+      clearHighlights();
+      grid.forEach(cell => {
+        const unit = cell.unit;
+        if (!unit) return;
+
+        if (unit.faction === currentFaction) {
+          unit.hasMoved = false;
+          unit.hasAttacked = false;
+
+          if (unit.routed) {
+            unit.routeTurns++;
+            if (unit.routeTurns > 3) {
+              cell.unit = null;
+              renderCell(cell);
+            }
+          }
+
+          // Morale regen if near general
+          const general = grid.find(t => t.unit && t.unit.type === 'general' && t.unit.faction === unit.faction);
+          if (general) {
+            const dist = Math.abs(cell.row - general.row) + Math.abs(cell.col - general.col);
+            if (dist <= 4 && !unit.routed) {
+              unit.morale = Math.min(100, unit.morale + 10);
+            }
+          }
+        }
+      });
+
+      // Check capture point
+      checkCapturePoint();
+
+      currentFaction = currentFaction === 'france' ? 'russia' : 'france';
+      updateTurnDisplay();
+      updateGeneralAura();
+
+      if (currentFaction === aiFaction) {
+        setTimeout(aiTakeTurn, 500);
+      }
+    }
+
+    function aiTakeTurn() {
+      const aiUnits = grid.filter(t => t.unit && t.unit.faction === aiFaction && !t.unit.routed);
+
+      for (const tile of aiUnits) {
+        const neighbors = getNeighbors(tile, tile.unit.type === 'cavalry' ? 4 : 1);
+
+        let attacked = false;
+        for (const n of neighbors) {
+          if (n.unit && n.unit.faction !== aiFaction && !tile.unit.hasAttacked) {
+            attemptAction(tile, n);
+            attacked = true;
+            break;
+          }
+        }
+
+        if (!attacked) {
+          const empties = neighbors.filter(n => !n.unit && (n.terrain !== 'river' || n.terrain === 'bridge'));
+          if (empties.length > 0 && !tile.unit.hasMoved) {
+            const target = empties[Math.floor(Math.random() * empties.length)];
+            attemptAction(tile, target);
+          }
+        }
+      }
+
+      setTimeout(endTurn, 500);
+    }
+
+    function getNeighbors(tile, range = 1) {
+      const results = [];
+      for (let r = tile.row - range; r <= tile.row + range; r++) {
+        for (let c = tile.col - range; c <= tile.col + range; c++) {
+          if (Math.abs(tile.row - r) + Math.abs(tile.col - c) <= range && !(r === tile.row && c === tile.col)) {
+            const n = grid.find(t => t.row === r && t.col === c);
+            if (n) results.push(n);
+          }
+        }
+      }
+      return results;
+    }
+
+    function checkCapturePoint() {
+      const tile = grid.find(t => t.row === capturePoint.row && t.col === capturePoint.col);
+      if (!tile.unit || tile.unit.routed) {
+        capturePoint.holder = null;
+        capturePoint.counter = 0;
+      } else {
+        const holder = tile.unit.faction;
+        if (holder === capturePoint.holder) {
+          capturePoint.counter++;
+        } else {
+          capturePoint.holder = holder;
+          capturePoint.counter = 1;
+        }
+
+        document.getElementById('controlDisplay').textContent =
+          `Capture Point Held By: ${holder} (${capturePoint.counter}/10)`;
+
+        if (capturePoint.counter >= 10) {
+          alert(`${holder.charAt(0).toUpperCase() + holder.slice(1)} wins by holding the bridge!`);
+          resetGame();
+        }
+      }
+    }
+
+    function checkWinCondition() {
+      const franceAlive = grid.some(t => t.unit && t.unit.faction === 'france' && !t.unit.routed);
+      const russiaAlive = grid.some(t => t.unit && t.unit.faction === 'russia' && !t.unit.routed);
+      if (!franceAlive) {
+        alert('Russia Wins!');
+        resetGame();
+      }
+      if (!russiaAlive) {
+        alert('France Wins!');
+        resetGame();
+      }
+    }
+  function updateGeneralAura() {
+      // Clear previous aura highlights
+      document.querySelectorAll('.tile').forEach(tile => tile.classList.remove('aura'));
+
+      const generalTile = grid.find(t => t.unit && t.unit.type === 'general' && t.unit.faction === currentFaction);
+      if (!generalTile) return;
+
+      const range = 4;
+      for (let r = generalTile.row - range; r <= generalTile.row + range; r++) {
+        for (let c = generalTile.col - range; c <= generalTile.col + range; c++) {
+          const dist = Math.abs(generalTile.row - r) + Math.abs(generalTile.col - c);
+          if (dist <= range) {
+            const tile = grid.find(t => t.row === r && t.col === c);
+            if (tile) tile.element.classList.add('aura');
+          }
+        }
+      }
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('.tile').forEach(tile => {
+        tile.classList.remove('highlight');
+      });
+    }
+
+    function resetGame() {
+      deploymentPhase = true;
+      currentFaction = 'france';
+      selectedTile = null;
+      capturePoint.holder = null;
+      capturePoint.counter = 0;
+
+      document.getElementById('startScreen').style.display = 'block';
+      document.getElementById('turnDisplay').style.display = 'none';
+      document.getElementById('endTurnBtn').style.display = 'none';
+      document.getElementById('deployFaction').textContent = 'France';
+      document.getElementById('controlDisplay').textContent = '';
+
+      setupGeneralDropdown();
+      createBattlefield();
+      updateGeneralAura();
+    }
+
+    window.onload = () => {
+      setupGeneralDropdown();
+      createBattlefield();
+      updateGeneralAura();
+    };
+  </script>
+</body>
+</html>
